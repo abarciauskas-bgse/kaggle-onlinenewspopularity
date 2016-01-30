@@ -3,7 +3,7 @@ library(class)
 if (!require('MASS')) install.packages('MASS')
 library(MASS)
 
-# setwd('~/Projects/kaggle-onlinenewspopularity/data/')
+setwd('~/Projects/kaggle-onlinenewspopularity/data/')
 
 # Read in data
 data.train <- read.csv('news_popularity_training.csv')
@@ -34,7 +34,7 @@ success.rate <- function(predictions, actual) {
 
 # Generate 1 to 10 k-nn models and see which one performs best
 # WARNING: Takes a while to run
-ks <- 1:20
+ks <- c(100)
 pred.success.rates <- list()
 for (k in 1:length(ks)) {
   res <- knn(data.train[,1:(ncol(data.train)-1)],
@@ -47,6 +47,7 @@ for (k in 1:length(ks)) {
 
 # seems to plateau ~44% for k=19
 pred.success.rates
+# k-100 gives 46.13%
 
 # Logistic regression for 5 categories
 X <- data.train[order(data.train[,'popularity']),]
