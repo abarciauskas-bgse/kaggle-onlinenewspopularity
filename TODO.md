@@ -6,6 +6,7 @@
 * take [weighted?] average of classifiers
 * decision tree
 * random forest
+* testing using rolling windows of test sets
 
 ## Variable selection
 
