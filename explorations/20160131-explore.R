@@ -34,8 +34,8 @@ for (i in 1:nboost) {
 }
 
 
-alphas
-
+# This did poorly (48%) but I haven't weighted the predictions by the goodness of the model making it
+# which should be done
 concensus <- c()
 for (i in 1:nrow(preds)) {
   concensus <- append(concensus, round(median(preds[i,])))
