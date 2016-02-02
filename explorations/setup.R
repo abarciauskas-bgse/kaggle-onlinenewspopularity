@@ -39,5 +39,8 @@ success.rate <- function(predictions, actual) {
 }
 
 # see what changes with popularity levels 1-3
-data.train <- subset(data.train, popularity %in% c(1,2,3))
-data.validation <- subset(data.validation, popularity %in% c(1,2,3))
+remove.upper.classes <- function() {
+  data.train <- subset(data.train, popularity %in% c(1,2,3))
+  data.validation <- subset(data.validation, popularity %in% c(1,2,3))
+  list(data.train = data.train, data.validation = data.validation)
+}

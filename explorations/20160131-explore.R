@@ -5,6 +5,9 @@ source('setup.R')
 #
 # As suggested in http://www.r-bloggers.com/how-to-multinomial-regression-models-in-r/
 #
+res <- remove.upper.classes()
+data.train <- res$data.train
+data.validation <- res$data.validation
 obs.weights <- rep(1, nrow(data.train))
 model <- multinom(popularity ~ ., data = data.train, weights = obs.weights)
 preds <- predict(model, newdata=data.validation)

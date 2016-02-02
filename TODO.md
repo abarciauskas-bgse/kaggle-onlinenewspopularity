@@ -7,6 +7,8 @@
 * decision tree
 * random forest
 * testing using rolling windows of test sets
+* knn with different distance metric
+* groups of classes (e.g. 2's v 3's)
 
 ## Variable selection
 
