@@ -7,7 +7,7 @@ output: pdf_document
 
 Content summarized in 59 features of all articles published from January 7 2013 to January 7 2015 on Mashable. 39,000 articles in total.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 library("ggplot2")
 setwd("/home/zsuzsa/Documents/kaggle")
 source("kaggle-onlinenewspopularity/functions.R")
@@ -15,6 +15,7 @@ source("kaggle-onlinenewspopularity/functions.R")
 data.train <- read.csv('data/news_popularity_training.csv')
 N <- nrow(data.train)
 
+#Define different variable categories
 y <- "popularity"
 names <- names(data.train)
 
@@ -29,6 +30,7 @@ x.rate <- names[c(6:8,41:61)]
 x.cat <- names[c(15:20,33:40)]
 x.numeric <- names[!(names %in% c(x.rate,x.cat,names[c(1:2,62)]))]
 
+#Create categorical variable from channel and weekday binary variables
 data.train <- within(data.train, {
   data_chanel = ifelse(data_channel_is_lifestyle == 1, "Lifestyle",
                            ifelse( data_channel_is_entertainment == 1, "Enertainent",
@@ -46,14 +48,166 @@ data.train <- within(data.train, {
                                                   ifelse( weekday_is_friday == 1, "Friday",
                                                           ifelse( weekday_is_saturday == 1, "Saturday","Sunday"))))))
      })
+
+#Create binary from y variable
+for(t in unique(data.train[,y])) {
+   data.train[paste("pop",t,sep="")] <- ifelse( data.train[,y] == t , 1 , 0 )
+}
+y.bin = names(data.train[,65:69])
 ```
 
 ##Data discovery
 
+###Explore relationship between numeric data
+Simple correlations for non-categorical variables visualised. Stronger correlations between variables of the same category.
+
 ```{r, echo=FALSE}
 #Correlations for numeric data
+library(reshape2)
 
-#Chi-squared test/Fisher test/mutual information for categorical data
+corr <-round(cor( data.train[,sort(c(x.numeric,x.rate))], method="pearson", use="pairwise.complete.obs"),2)
+corr[lower.tri(corr)] <- NA
+corr <- melt(corr)
+corr$Var1<-as.character(corr$Var1)
+corr$Var2<-as.character(corr$Var2)
+corr <- na.omit(corr)
 
-#LDA/Fisher test for categorical vs numeric (including y var.)
+ggplot(corr, aes(Var2, Var1))+
+  geom_tile(data=corr, aes(fill=value), color="white")+
+  scale_fill_gradient2(low="blue", high="red", mid="white", 
+                       midpoint=0, limit=c(-1,1),name="Correlation\n(Pearson)")+
+  theme(axis.text.x = element_text(angle=45, vjust=1, size=11, hjust=1))+
+  coord_equal()
+
+```
+
+###Explore relationships between categorical variables (including our y variable.)
+
+```{r, echo=FALSE, warning=FALSE}
+
+library(MASS)
+library(entropy)
+
+#contingency tables
+tbl.channel = table( data.train[,y] , data.train[,"data_chanel"]) 
+freq.tbl.channel = tbl.channel*100/sum(tbl.channel)
+
+tbl.weekday = table( data.train[,y] , data.train[,"weekday"]) 
+freq.tbl.weekday = tbl.weekday*100/sum(tbl.weekday)
+```
+
+Mosaic plot: Each cell is represented by a box whose area is equal to the count in that cell. The width of the box is the same for all boxes in the same column and is equal to the total count in that column. The height of the box is the proportion of individuals in the column which fall into that cell. (Empirical conditional probabilities of row variable given column variable.)
+
+Colored by: Pearson residuals - departure of each cell from independence. The formula is (actual - expected)/sqrt(expected). The units are in standard deviations, so a residual greater than 2 or less than -2 represents a departure significant at the 95% level. The expected count under independence is (row marginal)*(column marginal)/(table total).
+
+```{r, echo=FALSE, warning=FALSE}
+mosaicplot(t(tbl.channel), shade=T)
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+mosaicplot(t(tbl.weekday), shade=T)
+```
+
+Chi-squared test/Fisher test/mutual information for categorical data:
+
+Fisher test - were not able to perform - requires a lot of memory - very similar to chi-squared
+
+```{r, echo=FALSE, warning=FALSE}
+by.cat <- function(cont.table){
+  by.cat = data.frame(chisq = c(),mi = c(), mi.sd = c() ,fisher=c())
+  n.cat = ncol(cont.table)
+  for (i in 1:n.cat) {
+    ctbl = cbind(cont.table[,i], rowSums(cont.table[,-i])) 
+    by.cat[i,"chisq"] = chisq.test(ctbl)$p.value
+    by.cat[i,"mi"] = mi.empirical(ctbl)
+    by.cat[i,"mi.sd"] = mi.empirical(ctbl)/entropy.empirical( colSums(ctbl) )
+    rownames(by.cat)[i]=colnames(cont.table)[i]
+  }
+  return(by.cat)
+}
+```
+
+Channel categories in the order of comovement by chi-squared, mutual information and standardised mutual information.
+
+```{r, echo=FALSE, warning=FALSE}
+channel.by.cat = by.cat(tbl.channel)
+rownames(channel.by.cat[order(channel.by.cat$chisq),])
+rownames(channel.by.cat[order(channel.by.cat$mi,decreasing = T),])
+rownames(channel.by.cat[order(channel.by.cat$mi.sd, decreasing = T),])
+```
+
+Days of week in the order of comovement by chi-squared, mutual information and standardised mutual information.
+
+```{r, echo=FALSE, warning=FALSE}
+weekday.by.cat = by.cat(tbl.weekday)
+rownames(weekday.by.cat[order(weekday.by.cat$chisq),])
+rownames(weekday.by.cat[order(weekday.by.cat$mi,decreasing = T),])
+rownames(weekday.by.cat[order(weekday.by.cat$mi.sd,decreasing = T),])
+
+```
+
+
+##LDA/Fisher test for categorical vs numeric
+
+Compute Fisher score (measure of dependence) for all x variables and compute rank based on score. (Could be any measure of comovement.)
+```{r, echo=FALSE, warning=FALSE}
+#Function to calculate score
+fish.score <- function(y,x){
+  m.0 = mean(x[y==0]) 
+  m.1 = mean(x[y==1])
+  s.0 = sum((x[y==0] - m.0)**2)
+  s.1 = sum((x[y==1] - m.1)**2)
+  (m.0 - m.1)**2 / (s.0 + s.1)
+}
+
+#X variables to include
+x.fisher = c(x.numeric,x.rate,x.cat)
+
+#Fisher score for every x variable and every level of y
+fisher = data.frame(var = x.fisher,
+                    pop1 = NA,
+                    pop2 = NA,
+                    pop3 = NA,
+                    pop4 = NA,
+                    pop5 = NA)
+#Rank of variables by fisher score
+fisher.order = data.frame(rank = 1:length(x.fisher))
+for (i in y.bin) {
+  y.temp = data.train[i]
+  j = 0
+  for (var in x.fisher) {
+    j=j+1
+    x.temp = data.train[var]
+    fisher[j,i] = fish.score(y.temp,x.temp)
+  }
+  fisher.order[i] = fisher[order(fisher[i], decreasing=TRUE ),"var"]
+}
+
+fisher.order
+```
+
+Fit glm for all levels of y. Include varibles in increasing rank by Fisher score and save BIC and AIC.
+
+```{r, echo=FALSE, warning=FALSE}
+#Fit models and save AIC, BIC
+fisher.fit = function(y.var) {
+  formula = buildExp(y.var,"1")
+  fit <- glm(formula, family = "binomial" , data.train)
+  aic = AIC(fit)
+  bic = BIC(fit)
+  nvars = length(fisher.order[,y.var])
+  for ( i in 1:nvars ) {
+    formula = buildExp(y.var, fisher.order[1:i,y.var] )
+    fit <- glm(formula, family = "binomial" , data.train)
+    aic[i+1] = fit$aic
+    bic[i+1] = BIC(fit) 
+  }
+  list(AIC = aic, BIC = bic)
+}
+
+
+criterion.pop3 = fisher.fit("pop3")
+plot(criterion.pop2[["AIC"]])
+
 ```

@@ -1,3 +1,9 @@
+buildExp <- function(dependant, independants)
+{ 
+  indPart = paste(independants, collapse = " + ")
+  return( paste(dependant, indPart, sep = " ~ ") )
+}
+
 validation <- function( data , percentage ){
   nobs <- nrow(data)
   validation.indices <- sample(nobs, percentage*nobs)
