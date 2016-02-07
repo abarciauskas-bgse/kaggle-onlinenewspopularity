@@ -1,10 +1,3 @@
-# Attempt 2: PCA-in-groups
-
-# The point of this file:
-# Clearly, some sort of variable selection must be done. Early attempts at PCA
-# were, shall we say, less than promising. In this file, I use Zsuzsa's grouped
-# variables to do a smaller PCA-in-groups.
-
 # Load in data
 filepath <- '~/Projects/kaggle-onlinenewspopularity/data/'
 setwd(filepath)
