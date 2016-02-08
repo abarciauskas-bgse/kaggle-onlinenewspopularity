@@ -1,11 +1,11 @@
 # Load in data
 filepath <- '~/Projects/kaggle-onlinenewspopularity/data/'
 setwd(filepath)
-library(reshape2)
-library(ggplot2)
-library(dplyr)
 if (!require('nnet')) install.packages('nnet')
 library(nnet)
+if (!require('gbm')) install.packages('gbm')
+library(gbm)
+
 newspop <- read.csv('news_popularity_training.csv')
 newspop <- newspop[,setdiff(colnames(newspop),c('url','id'))]
 
@@ -58,6 +58,7 @@ for (first.group.idx in 1:length(groups)) {
 (good.interactions <- good.interactions[2:nrow(good.interactions),])
 # Get the unique set (there may be duplicates, which should be fixed in the loop above)
 good.interactions.set <- unique(good.interactions[,1:2])
+
 # add an interaction term to the training data
 for (pair.idx in 1:nrow(good.interactions.set)) {
   first.var.data <- good.interactions.set[pair.idx,1]
