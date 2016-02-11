@@ -1,5 +1,7 @@
 # TODO
 
+SUMMARIZE WHAT'S BEEN DONE SO FAR AND RESULTS
+
 ## Classification
 
 * xgboost (r package)
@@ -9,6 +11,9 @@
 * testing using rolling windows of test sets
 * knn with different distance metric
 * groups of classes (e.g. 2's v 3's)
+* cross-validation to find optimal gamma in boosting
+* n-fold cross validation to find (and ignore) outliers
+* adaboost
 
 ## Variable selection
 
