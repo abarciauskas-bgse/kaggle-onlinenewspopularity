@@ -5,15 +5,16 @@ SUMMARIZE WHAT'S BEEN DONE SO FAR AND RESULTS
 ## Classification
 
 * xgboost (r package)
-* take [weighted?] average of classifiers
-* decision tree
+* take [weighted] average of classifiers
 * random forest
-* testing using rolling windows of test sets
+* testing using rolling windows of test sets / random / mcmc test sets
 * knn with different distance metric
-* groups of classes (e.g. 2's v 3's)
+* we've done this with some sucess: classifying just 1,2,3
+    * try other ways to group
 * cross-validation to find optimal gamma in boosting
 * n-fold cross validation to find (and ignore) outliers
-* adaboost
+* [aimee would like to do this for fun] implement adaboost
+* libraray for adaboost
 
 ## Variable selection
 
@@ -27,10 +28,14 @@ SUMMARIZE WHAT'S BEEN DONE SO FAR AND RESULTS
 
 ## Other
 
-* compare results with python results
-* train just on classes 1-3
-
 ## Done
 
 * simple k-nn
 * simple logistic
+* random forest
+* gbm
+* svm
+* some bad feature selection (aimee: or at least my efforts have been hapless and unsuccessful)
+* multinom (nnet)
+* maybe more
+
