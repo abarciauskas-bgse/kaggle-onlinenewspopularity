@@ -15,12 +15,10 @@ library(ggplot2)
 library(dplyr)
 newspop <- read.csv('news_popularity_training.csv')
 
-# WHAT IS THIS WITCHCRAFT???
 #Create binary from y variable
 for(t in sort(unique(newspop[,'popularity']))) {
   newspop[paste("pop",t,sep="")] <- ifelse( newspop[,'popularity'] == t , 1 , 0 )
 }
-# Clever, Zsuzsa. Very clever.
 
 # Let's get us some groups
 names <- names(newspop)
@@ -114,7 +112,8 @@ j <- 1
 for(i in grep('pop[0-9]', names(newdata.train))) {
   t <- newdata.train[,i]
   current <- cbind(xvals, t)
-  model <- glm(t ~ . + is_weekend*., data = current, family=binomial)
+  #model <- glm(t ~ . + is_weekend*., data = current, family=binomial)
+  model <- glm(t ~ . , data = current, family=binomial)
   predict.model <- predict(model, newdata=newdata.test, type='response')
   assign(paste0('model', i), model)
   assign(paste0('predict', i), predict.model)
@@ -133,4 +132,5 @@ correct[newdata.test$popularity == which] <- 1
 sum(correct)/length(correct)
 
 # Having run the code three times, I got 49.1%, 50.2%, and 49.6% accuracy out-of-sample.
-# Woop!
+
+
