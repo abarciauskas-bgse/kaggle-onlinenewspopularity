@@ -21,5 +21,4 @@ preds <- predict(model.1, data.validation[,setdiff(colnames(data.validation), 'p
 success.rate(preds, data.validation[,'popularity'])
 
 if (!require(party)) install.packages('party')
-str(data.train)
-model.party <- cforest()
+model.party <- cforest(popularity ~ ., data = data.train)
