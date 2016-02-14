@@ -9,9 +9,36 @@ Content summarized in 59 features of all articles published from January 7 2013 
 
 ```{r, echo=FALSE, warning=FALSE}
 source("/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/Zsuzsi/data_read.R")
+library("ggplot2")
 ```
 
 ##Data discovery
+
+```{r, echo=FALSE}
+qplot( factor(popularity), data=data, geom = "bar",
+       fill=factor(weekday)
+       #position = "fill" #different display
+)
+
+ggplot( data , aes(x = factor(popularity) )) +  
+        geom_bar(aes(y = (..count..)/sum(..count..),fill = factor(weekday)), 
+                 binwidth = 25) + 
+        scale_y_continuous(labels = scales::percent) +
+        geom_text(aes(y = ((..count..)/sum(..count..)),
+                      label=scales::percent((..count..)/sum(..count..))),
+                  stat="bin",vjust = -0.25)
+      
+qplot( factor(popularity), data=data, geom="freqpoly", 
+       group=factor(weekday), 
+       colour=factor(weekday),
+       position="identity"
+)
+
+ggplot( data , aes(x = factor(popularity) )) +  
+        facet_grid(.~data_chanel) +
+        geom_histogram()
+
+```
 
 ###Explore relationship between numeric data
 Simple correlations for non-categorical variables visualised. Stronger correlations between variables of the same category.
@@ -20,13 +47,7 @@ Simple correlations for non-categorical variables visualised. Stronger correlati
 #Correlations for numeric data
 library(reshape2)
 
-qplot( factor(popularity), data=data.train, geom="freqpoly", 
-       group=factor(weekday), 
-       colour=factor(weekday),
-       position="identity"
-)
-
-corr <-round(cor( data.train[,sort(c(x.numeric,x.rate))], method="pearson", use="pairwise.complete.obs"),2)
+corr <-round(cor( data[,sort(c(x.numeric,x.rate))], method="pearson", use="pairwise.complete.obs"),2)
 corr[lower.tri(corr)] <- NA
 corr <- melt(corr)
 corr$Var1<-as.character(corr$Var1)
@@ -50,10 +71,10 @@ library(MASS)
 library(entropy)
 
 #contingency tables
-tbl.channel = table( data.train[,y] , data.train[,"data_chanel"]) 
+tbl.channel = table( data[,y] , data[,"data_chanel"]) 
 freq.tbl.channel = tbl.channel*100/sum(tbl.channel)
 
-tbl.weekday = table( data.train[,y] , data.train[,"weekday"]) 
+tbl.weekday = table( data[,y] , data[,"weekday"]) 
 freq.tbl.weekday = tbl.weekday*100/sum(tbl.weekday)
 ```
 
@@ -108,42 +129,83 @@ rownames(weekday.by.cat[order(weekday.by.cat$mi.sd,decreasing = T),])
 
 ```
 
-
-##LDA/Fisher test for categorical vs numeric
-
-Compute Fisher score (measure of dependence) for all x variables and compute rank based on score. (Could be any measure of comovement.)
 ```{r, echo=FALSE, warning=FALSE}
-#Function to calculate score
-fish.score <- function(y,x){
-  m.0 = mean(x[y==0]) 
-  m.1 = mean(x[y==1])
-  s.0 = sum((x[y==0] - m.0)**2)
-  s.1 = sum((x[y==1] - m.1)**2)
-  (m.0 - m.1)**2 / (s.0 + s.1)
+#Digital variables
+vp.setup(1,2)
+for (i in 1:length(x.dig)) {
+  print( ggplot( data , aes_string(x=x.dig[i]) ) + geom_histogram(binwidth=1 ), vp=vp.layout(1,i))
 }
 
-#X variables to include
-x.fisher = c(x.numeric,x.rate,x.cat)
-
-#Fisher score for every x variable and every level of y
-fisher = data.frame(var = x.fisher,
-                    pop1 = NA,
-                    pop2 = NA,
-                    pop3 = NA,
-                    pop4 = NA,
-                    pop5 = NA)
-#Rank of variables by fisher score
-fisher.order = data.frame(rank = 1:length(x.fisher))
-for (i in y.bin) {
-  y.temp = data.train[i]
-  j = 0
-  for (var in x.fisher) {
-    j=j+1
-    x.temp = data.train[var]
-    fisher[j,i] = fish.score(y.temp,x.temp)
-  }
-  fisher.order[i] = fisher[order(fisher[i], decreasing=TRUE ),"var"]
+vp.setup(1,2)
+for (i in 1:length(x.dig)) {
+  print(ggplot(data = data, aes_string(x=x.dig[i], y="popularity") ) +
+  geom_smooth(se=FALSE) +
+  geom_point( alpha=0.5), vp=vp.layout(1,i))
 }
 
-fisher.order
+vp.setup(1,2)
+for (i in 1:length(x.dig)) {
+  print(ggplot(data = data, aes_string(x=x.dig[i], y="popularity") ) +
+  geom_smooth(aes(color=as.factor(data_chanel)),se=FALSE) +
+  geom_point( aes(color=as.factor(data_chanel)),alpha=0.5), vp=vp.layout(1,i))
+}
+
+vp.setup(1,2)
+for (i in 1:length(x.dig)) {
+  print(ggplot(data = data, aes_string(x=x.dig[i], y="popularity") ) +
+  geom_smooth(aes(color=as.factor(is_weekend)),se=FALSE) +
+  geom_point( aes(color=as.factor(is_weekend)),alpha=0.5), vp=vp.layout(1,i))
+}
+
+#Links
+vp.setup(2,3)
+for (i in 1:length(x.links)) {
+  row = ceiling(i/3)
+  col = i - (row-1)*3
+  print(ggplot( data , aes_string(x=x.links[i]) ) + geom_histogram(),vp=vp.layout(row,col))
+}
+
+vp.setup(2,3)
+for (i in 1:length(x.links)) {
+  row = ceiling(i/3)
+  col = i - (row-1)*3
+  print(ggplot(data = data, aes_string(x=x.links[i], y="popularity") ) +
+  geom_smooth(se=FALSE) +
+  geom_point( alpha=0.5), vp=vp.layout(row,col))
+}
+
+#Words
+vp.setup(2,3)
+for (i in 1:length(x.words)) {
+  row = ceiling(i/3)
+  col = i - (row-1)*3
+  print(ggplot( data , aes_string(x=x.words[i]) ) + geom_histogram(),vp=vp.layout(row,col))
+}
+
+#Key
+vp.setup(2,5)
+x.temp = x.key[!(x.key %in% x.cat)]
+for (i in 1:length(x.temp)) {
+  row = ceiling(i/5)
+  col = i - (row-1)*5
+  print(ggplot( data , aes_string(x=x.temp[i]) ) + geom_histogram(),vp=vp.layout(row,col))
+}
+
+####
+vp.setup(4,4)
+for (var in c(x.numeric ,x.rate)) {
+  
+}
+
+vp.setup(2,5)
+for (i in 1:length(x.temp)) {
+  row = ceiling(i/5)
+  col = i - (row-1)*5
+  print(ggplot(data = data, aes_string(x=var, y="popularity") ) +
+  geom_smooth(aes(color=as.factor(data_chanel)),method = "lm") +
+  geom_point( aes(color=as.factor(data_chanel)),alpha=0.5) )
+}
+
+
+
 ```
