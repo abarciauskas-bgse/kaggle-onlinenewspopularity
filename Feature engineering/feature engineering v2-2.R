@@ -106,4 +106,5 @@ correct <- rep(0, nrow(newdata.test))
 correct[newdata.test$popularity == which] <- 1
 sum(correct)/length(correct)
 
+# I ran the code three times,and came up with 48.5%, 48.5%, 48.1% accuracy.
 # This is marginally better than we would have done using only PREDICT ALL AS 2
