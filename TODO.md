@@ -9,6 +9,7 @@
 * [in-progress] n-fold cross validation to find (and ignore) outliers
 * [aimee would like to do this for fun] implement adaboost
 * library for adaboost
+* caret to balance
 
 ## Variable selection
 
