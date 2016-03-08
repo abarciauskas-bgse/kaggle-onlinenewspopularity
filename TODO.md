@@ -1,20 +1,16 @@
 # TODO
 
-SUMMARIZE WHAT'S BEEN DONE SO FAR AND RESULTS
-
 ## Classification
 
-* xgboost (r package)
 * take [weighted] average of classifiers
-* random forest
 * testing using rolling windows of test sets / random / mcmc test sets
 * knn with different distance metric
-* we've done this with some sucess: classifying just 1,2,3
-    * try other ways to group
 * cross-validation to find optimal gamma in boosting
-* n-fold cross validation to find (and ignore) outliers
-* [aimee would like to do this for fun] implement adaboost
-* libraray for adaboost
+* [in-progress] n-fold cross validation to find (and ignore) outliers
+* library for adaboost
+* caret to balance
+* svm to identify outliers
+* stacking
 
 ## Variable selection
 
@@ -33,9 +29,13 @@ SUMMARIZE WHAT'S BEEN DONE SO FAR AND RESULTS
 * simple k-nn
 * simple logistic
 * random forest
-* gbm
+* (moderate success) gbm (best result: 0.529 on submission to leaderboard)
 * svm
 * some bad feature selection (aimee: or at least my efforts have been hapless and unsuccessful)
+* basic pca
+* feature identification - split the variables of highly correlated variables and did PCA on the groups
 * multinom (nnet)
-* maybe more
+* xgboost (r package)
+* (moderate success) classifying just 1,2,3
+* more complex knn
 

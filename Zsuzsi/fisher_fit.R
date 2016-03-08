@@ -2,7 +2,7 @@
 
 source("/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/Zsuzsi/data_read.R")
 
-data.fisher = data.sd[data.sd$is_weekend == 0,]
+data.fisher = data.sd
 
 #Generate training and validation data
 temp = validation(data.fisher,0.2)
@@ -20,7 +20,7 @@ fish.score <- function(y,x){
 }
 
 #X variables to include
-x.fisher = c(x.numeric,x.rate, x.cat[x.cat!="is_weekend"] )
+x.fisher = c(x.numeric,x.rate, x.cat)
 
 #Fisher score for every x variable and every level of y
 fisher = data.frame(var = x.fisher,
@@ -30,8 +30,9 @@ fisher = data.frame(var = x.fisher,
                     pop4 = NA,
                     pop5 = NA)
 
-#Rank of variables by fisher score
+#Rank of variables by fisher score using only training data
 fisher.order = data.frame(rank = 1:length(x.fisher))
+
 for (i in y.bin) {
   y.temp = data.train[i]
   j = 0
@@ -43,30 +44,63 @@ for (i in y.bin) {
   fisher.order[i] = fisher[order(fisher[i], decreasing=TRUE ),"var"]
 }
 
-fisher.order
+#Visualize fisher scores
+library(reshape2)
+fisher.vis <- function(yvar) {
+  fisher.melt <- melt(fisher[,c("var",yvar)])
+  p <- ggplot(fisher.melt, aes(variable, var))+
+    geom_tile(data=fisher.melt, aes(fill=value), color="white")+
+    scale_fill_gradient2()+
+    theme(axis.text.x = element_text(angle=45, vjust=1, size=11, hjust=1))+
+    coord_equal()
+  return(p)
+}
+
+fisher.vis("pop1") 
 
 #Fit models and save AIC, BIC
+
+#Fit models by including variables in increasing fisher score order
 fisher.fit = function(y.var) {
   formula = buildExp(y.var,"1")
   fit <- glm(formula, family = "binomial" , data.train)
-  #aic = AIC(fit)
   bic = BIC(fit)
   nvars = length(fisher.order[,y.var])
   for ( i in 1:nvars ) {
     formula = buildExp(y.var, fisher.order[1:i,y.var] )
     fit <- glm(formula, family = "binomial" , data.train)
-    #aic[i+1] = fit$aic
     bic[i+1] = BIC(fit) 
   }
   list(BIC = bic)
 }
 
+#Fit models in increasing fisher score order but drop if it decreased BIC
+fisher.fit2 = function(y.var) {
+  formula = buildExp(y.var,"1")
+  fit <- glm(formula, family = "binomial" , data.train)
+  bic = BIC(fit)
+  fisher.order.temp = fisher.order[,y.var]
+  nvars = length(fisher.order.temp)
+  var.in = character()
+  for ( i in 1:nvars ) {
+    var.in = c(var.in,as.character( fisher.order.temp[i] ))
+    formula = buildExp(y.var, var.in )
+    fit <- glm(formula, family = "binomial" , data.train)
+    bic[i+1] = BIC(fit) 
+    if ( bic[i+1] <= bic[i] ) {
+      var.in[-length(var.in)]
+    }
+  }
+  list(BIC = bic)
+}
+
+#Run models and save winning model, predicion and BIC
 criterion = rep(NA,length(y.bin))
 fisher.best.model = list()
 prediction = list()
 bic = list()
 
-for (yvar in y.bin[y.bin!="pop5"]) {
+for (yvar in y.bin) {
   bic[[yvar]] = fisher.fit(yvar)$BIC
   nvars.temp = which.min( bic[[yvar]] ) - 1
   formula = buildExp(yvar, fisher.order[1:(nvars.temp),yvar] )
@@ -75,7 +109,9 @@ for (yvar in y.bin[y.bin!="pop5"]) {
   prediction[[yvar]] = predict.glm( fit , data.validation, type="response" )
 }
 
+#Check prediction accuracy
 prediction = as.data.frame(prediction)
+
 prediction.fisher = apply(prediction,1, function(x) as.numeric(substr(names(which.max(x)),4,4)) )
 table(prediction.fisher, data.validation[,y])
 
@@ -83,33 +119,3 @@ data.validation$correct = ifelse(prediction.fisher == data.validation[,y],1,0)
 
 success.rate(prediction.fisher, data.validation[,y] )
 
-ggplot(data = data.validation, aes(x=data_chanel) ) + 
-  geom_bar(aes( fill=factor(correct) ), binwidth = 25)
-
-ggplot(data = data.validation, aes(x=data_chanel ) ) + 
-  geom_bar(aes( fill=factor(correct) ), binwidth = 25, position = "fill")
-
-ggplot(data = data.validation, aes(x=weekday) ) + 
-  geom_bar(aes( fill=factor(correct) ), binwidth = 25, position = "fill")
-
-
-
-for (yvar in y.bin) {
-  if (yvar=="pop1") {
-    formula = buildExp(yvar, fisher.order[1:9,yvar] )
-  } else if (yvar =="pop2") {
-    formula = buildExp(yvar, fisher.order[1:10,yvar] )
-  } else if (yvar =="pop3") {
-    formula = buildExp(yvar, fisher.order[1:12,yvar] )
-  } else {
-    nvars.temp = which.min( bic[[yvar]] ) - 1
-    formula = buildExp(yvar, fisher.order[1:(nvars.temp),yvar] )
-  }
-  fit <- glm(formula, family = "binomial" , data.train)
-  prediction[[yvar]] = predict.glm( fit , data.validation, type="response" )
-}
-
-prediction = as.data.frame(prediction)
-prediction.fisher = apply(prediction,1, function(x) as.numeric(substr(names(which.max(x)),4,4)) )
-table(prediction.fisher, data.validation[,y])
-success.rate(prediction.fisher, data.validation[,y] )
