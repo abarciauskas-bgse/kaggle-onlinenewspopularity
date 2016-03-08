@@ -7,9 +7,10 @@
 * knn with different distance metric
 * cross-validation to find optimal gamma in boosting
 * [in-progress] n-fold cross validation to find (and ignore) outliers
-* [aimee would like to do this for fun] implement adaboost
 * library for adaboost
 * caret to balance
+* svm to identify outliers
+* stacking
 
 ## Variable selection
 
@@ -36,4 +37,5 @@
 * multinom (nnet)
 * xgboost (r package)
 * (moderate success) classifying just 1,2,3
+* more complex knn
 
