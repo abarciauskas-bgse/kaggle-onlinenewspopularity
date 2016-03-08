@@ -45,6 +45,9 @@ for(t in unique(data[,y])) {
 }
 y.bin = names(data[,65:69])
 
+data[,"pop1and2"] <- ifelse( data[,y] == 1 | data[,y] ==2 , 1 , 0 )
+
+
 #Standardise numeric variables
 data.sd = data
 data.sd[ ,c(x.numeric,x.rate )] = scale(data[ ,c(x.numeric,x.rate )])
