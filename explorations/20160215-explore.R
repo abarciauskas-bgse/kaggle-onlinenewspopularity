@@ -93,3 +93,8 @@ success.rate(full.model.lower$predicted, data.full.lower$popularity)
 library(cphtbo)
 res <- cross.val(model.function = randomForest, model.args = list(formula = lower.formula, data = data.full.lower, importance = TRUE, ntree = 1000), data.train = data.full.lower, no.subsets = 10)
 
+
+
+model <- train.randomForest(data.train[1:1000,])
+preds <- predict(model, data.validation[,1:59])
+success.rate(preds, data.validation[,60])
