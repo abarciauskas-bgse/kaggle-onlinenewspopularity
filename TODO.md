@@ -2,15 +2,11 @@
 
 ## Classification
 
-* take [weighted] average of classifiers
-* testing using rolling windows of test sets / random / mcmc test sets
+* [in-progress] stacking / take [weighted] average of classifiers
 * knn with different distance metric
-* cross-validation to find optimal gamma in boosting
-* [in-progress] n-fold cross validation to find (and ignore) outliers
-* library for adaboost
-* caret to balance
-* svm to identify outliers
-* stacking
+* caret to balance classes
+* ensemble cross validation: https://github.com/zachmayer/caretEnsemble
+* More with cross-val using caret: grid search of parameters, but need systematic way of comparing results. Can run a long time
 
 ## Variable selection
 
@@ -38,4 +34,5 @@
 * xgboost (r package)
 * (moderate success) classifying just 1,2,3
 * more complex knn
-
+* n-fold cross validation to find (and ignore) outliers
+* caret for cross validation and grid search of hyperparamters
