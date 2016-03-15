@@ -1,6 +1,7 @@
 #Fit glm for all levels of y. Include varibles in increasing rank by Fisher score and save BIC and AIC.
 
 source("/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/Zsuzsi/data_read.R")
+source("/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/functions.R")
 
 data.fisher = data.sd
 
@@ -119,3 +120,43 @@ data.validation$correct = ifelse(prediction.fisher == data.validation[,y],1,0)
 
 success.rate(prediction.fisher, data.validation[,y] )
 
+#Trying ordered logit to take into account that popularity is an ordered variable 
+data.train[,y] = factor(data.train[,y])
+data.validation[,y] = factor(data.validation[,y])
+
+#Define rank of x variables, aggregate their fisher rank to one rank
+rank = rep(0,length(x.fisher))
+names(rank) = x.fisher
+for (var in x.fisher) {
+  for (i in 2:6) {
+  rank.temp = fisher.order[ which(fisher.order[ , i] == var ) , "rank" ]
+  rank[var] = rank[var] + rank.temp
+  }
+}
+
+fisher.order = names(rank[order(rank)])
+
+#Function to fit ordered models
+ordered.fit = function(y.var) {
+  model <- list()
+  formula = buildExp(y.var,"1")
+  fit <- polr(formula, data = data.train, method = "logistic")
+  model[[1]] <- fit
+  nvars = length(fisher.order)
+  for ( i in 1:nvars ) {
+    formula = buildExp(y.var, fisher.order[1:i] )
+    fit <- polr(formula, data = data.train, method = "logistic")
+    model[[i+1]] <- fit
+  }
+  model
+}
+
+models <- ordered.fit("popularity")
+#Extracting test error
+accuracy.ordered <- rep(NA, length(models)) 
+for (i in 1:length(models)) {
+  prediction = predict( models[[i]] , data.validation, type="class" )
+  accuracy.ordered[i] = success.rate(prediction, data.validation[,y] )
+}
+#Prediction is only running up to 18 vars but it can already be seen 
+#that the accuracy is pretty low (~48,9%) 
