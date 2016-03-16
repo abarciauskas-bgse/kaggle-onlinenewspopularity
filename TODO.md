@@ -22,8 +22,9 @@
 
 ## Done
 
-* simple k-nn
-* simple logistic
+* k-nn: run on standardised data, optimized for best k-value, k-nn optimized separately for different channels and weekend/weekday
+* simple logistic: combined with variable selections based on fisher score and BIC
+* ridge and lasso regression with linear probability model and logistic regression model 
 * random forest
 * (moderate success) gbm (best result: 0.529 on submission to leaderboard)
 * svm
