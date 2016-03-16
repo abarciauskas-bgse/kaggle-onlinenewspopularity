@@ -40,7 +40,7 @@ ensemble.forest <- function(nforests = 10, params = list(), seed = 1402, train.d
   }
 
   # return accuracy for each odd number of forest sizes
-  sub.forest.sizes <- seq(1,nforests,2)
+  sub.forest.sizes <- seq(3,nforests,2)
   sub.forest.accuracies <- rep(NA, length(sub.forest.sizes))
   for (i in 1:length(sub.forest.sizes)) {
     forest.size <- sub.forest.sizes[i]
