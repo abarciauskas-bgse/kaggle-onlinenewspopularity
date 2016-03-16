@@ -17,3 +17,7 @@ Below is a plot of the correlations:
 Ensembling predictions from the least correlated models resulted in lower predictive power. In order to affirm this result, we ran 1000 simulations with different random sizes and selections of the model predictions available.
 
 ![1000 simulations](datadir/randomensemblesims.png)
+
+[ADD ME: predictive power by ensemble size]
+
+[ADD ME: ensembling RF's tests]
