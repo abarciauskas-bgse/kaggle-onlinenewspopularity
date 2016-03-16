@@ -1,6 +1,7 @@
 setwd('~/Projects/kaggle-onlinenewspopularity/explorations/')
 # IMPORTANT: loads data and factorizes 'popularity'
 source('setup.R')
+install.packages('devtools')
 devtools::install_github('zachmayer/caretEnsemble')
 
 library("caretEnsemble")
@@ -115,44 +116,152 @@ ensemble.preds <- apply(all.preds, 1, my.mode)
 
 success.rate(ensemble.preds, data.test.y)
 
-# just train parRF since it is doing awesome
-library(foreach)
+# parRF has the highest out of sample accuracy,
+# it would appear so going to start with that and find the model with which it is the least correlated
+parRf.corrs <- list()
+for (i in 1:length(preds)) {
+  other.model.name <- names(preds[i])
+  other.model.preds <- preds[[i]]
+  parRf.corrs[other.model.name] = sum(preds$parRF == other.model.preds)/length(preds$parRF)
+}
 
-rfParam <- expand.grid(ntree=100, importance=TRUE, mtry = 2)
-x <- data[,setdiff(colnames(data), 'popularity')]
-y <- data[,'popularity']
+# knn is least correlated with 0.65 similarity in predictions
 
-# took forever
-m <- train(x, y, method="parRF")
+# so find the one least correlated with knn?
+knn.corrs <- list()
+for (i in 1:length(preds)) {
+  other.model.name <- names(preds[i])
+  other.model.preds <- preds[[i]]
+  knn.corrs[other.model.name] = sum(preds$knn == other.model.preds)/length(preds$knn)
+}
+knn.corrs
 
-library("foreach")
-if (!require('doSNOW')) install.packages('doSNOW')
-library(randomForest)
+# Try an ensemble with gbm, knn and parRF
+mini.ensemble.preds <- apply(all.preds[,c('gbm','knn','parRF')], 1, my.mode)
 
-# Setting number of cores in your machine. In this case, it is 2
-registerDoSNOW(makeCluster(2, type="SOCK"))
+success.rate(mini.ensemble.preds, data.test.y)
+# slightly whole ensemble -> 0.5135
 
-# Optimal mtry
-# as found by caret's train
-mtry <- 30
-print(mtry)
-
-# Main Random Forest Code. Run 250 trees on 2 cores parallely and then combine them
-system.time(
-  rf <- foreach(
-    ntree = rep(250, 2),
-    .combine = combine,
-    .packages = "randomForest") %dopar%
-    randomForest(popularity ~ ., 
-                 data = data,
-                 ntree = ntree,
-                 mtry = mtry,
-                 importance=TRUE)
+# try to train with caret ensemble
+model_list <- caretList(
+  popularity ~ ., data=data.small,
+  trControl = my_control,
+  methodList = c('knn','parRF','rf')
 )
+model_preds <- lapply(model_list, predict, newdata=data.test.small, type="raw")
+model_preds.mat <- matrix(as.numeric(unlist(model_preds)), ncol = 3, byrow = TRUE)
+ensemble.preds.new <- apply(model_preds.mat, 1, my.mode)
+head(ensemble.preds.new)
+success.rate(ensemble.preds.new, data.test.small[,'popularity'])
 
-# train many models on a small number of training data
-# determine which return the most uncorrelated fits to the features
-# cross-validate differen uncorrelated combinations
+# Make a list of potential models
+init.models <- c('knn','parRF','gbm')
+potential.models <- setdiff(c(
+  'gbm',
+  'multinom',
+  'knn',
+  'parRF',
+  'rpart',
+  'avNNet',
+  'rf',
+  'mlpWeightDecay',
+  'svmRadial'), init.models)
 
-# TODO: more tuning parameters, random tuning parameters
+# make an initial ensemble
+model_list <- caretList(
+  popularity ~ ., data=data.small,
+  trControl = my_control,
+  methodList = init.models
+)
+# and an initial test accuracy
+model_preds <- lapply(model_list, predict, newdata=data.test.small, type="raw")
+model_preds.mat <- matrix(as.numeric(unlist(model_preds)), ncol = 3, byrow = TRUE)
+ensemble.preds.new <- apply(model_preds.mat, 1, my.mode)
+success.rate(ensemble.preds.new, data.test.small[,'popularity'])
 
+# for the other models, cycle and add if they improve accuracy
+for (model.idx in 1:length(potential.models)) {
+  model_list <- caretList(
+    popularity ~ ., data=data.small,
+    trControl = my_control,
+    methodList = append(init.models, potential.models[model.idx])
+  )
+  
+  # add new model predictions to ensemble.preds.new and take mode
+  
+}
+
+# this is going nowhere so just trying an ensemble with multinom, parRF and knn on more data
+
+fiftypct.rand.idcs <- sample(1:nrow(data), nrow(data)/2)
+train.data <- data[fiftypct.rand.idcs,]
+test.data <- data[-fiftypct.rand.idcs,]
+train.x <- train.data[,setdiff(colnames(train.data), 'popularity')]
+train.y <- train.data[,'popularity']
+test.x <- test.data[,setdiff(colnames(test.data), 'popularity')]
+test.y <- test.data[,'popularity']
+
+# train multinom, parRF and gbm
+multinom.model <- multinom(popularity ~ ., train.data)
+rf.model <- randomForest(train.x, train.y, mtry = 2)
+#   n.trees interaction.depth shrinkage n.minobsinnode
+# 1      50                 1       0.1             10
+gbm.model <- gbm(formula = popularity ~ .,
+                 data = train.data,
+                 distribution = 'multinomial',
+                 n.trees = 50,
+                 interaction.depth = 1,
+                 shrinkage = 0.1,
+                 n.minobsinnode = 10)
+# relics of attempts past
+# library(class)
+# knn.model <- knn(train.x, test.x, train.y, k = 9)
+
+ensemble.preds <- lapply(list(multinom.model, rf.model), function(mod) {
+  return(predict(mod, test.x))
+})
+ensemble.preds <- do.call(cbind, ensemble.preds)
+gbm.preds <- apply(predict(gbm.model, test.x, n.trees = 50), 1, which.max)
+ensemble.preds <- cbind(ensemble.preds, gbm.preds)
+colnames(ensemble.preds) <- c('multinom','rf','gbm')
+ensemble.preds.gathered <- apply(ensemble.preds, 1, my.mode)
+success.rate(ensemble.preds.gathered, test.y)
+# [1] "Number of errors: 7377"
+# [1] "Rate: 0.5148
+# [1] 0.5148
+
+# swap multinom for avNNet
+# TODO: tune parameters for avNNet
+avNNet.model <- avNNet(popularity ~ ., data = train.data)
+ensemble.preds <- lapply(list(avNNet.model, rf.model), function(mod) {
+  return(predict(mod, test.x))
+})
+ensemble.preds <- do.call(cbind, ensemble.preds)
+gbm.preds <- apply(predict(gbm.model, test.x, n.trees = 50), 1, which.max)
+ensemble.preds <- cbind(ensemble.preds, gbm.preds)
+colnames(ensemble.preds) <- c('avNNet','rf','gbm')
+ensemble.preds.gathered <- apply(ensemble.preds, 1, my.mode)
+success.rate(ensemble.preds.gathered, test.y)
+
+
+# FOR EVERYTHING
+train.data <- data
+test.data <- read.csv('../data/news_popularity_test.csv')
+train.x <- train.data[,setdiff(colnames(train.data), 'popularity')]
+train.y <- train.data[,'popularity']
+test.x <- test.data[,setdiff(colnames(test.data), c('id', 'url','popularity'))]
+
+multinom.model <- multinom(popularity ~ ., train.data)
+rf.model <- randomForest(train.x, train.y, mtry = 2)
+knn.model <- knn(train.x, test.x, train.y, k = 9)
+
+ensemble.preds <- lapply(list(multinom.model, rf.model), function(mod) {
+  return(predict(mod, test.x))
+})
+ensemble.preds <- do.call(cbind, ensemble.preds)
+ensemble.preds <- cbind(ensemble.preds, knn.model)
+colnames(ensemble.preds) <- c('multinom','rf','knn9')
+ensemble.preds.gathered <- apply(ensemble.preds, 1, my.mode)
+
+predictions <- cbind(id=test.data[,'id'], popularity=ensemble.preds.gathered)
+write.csv(predictions, '../submissions/14032016-predictions.csv', row.names = FALSE)
