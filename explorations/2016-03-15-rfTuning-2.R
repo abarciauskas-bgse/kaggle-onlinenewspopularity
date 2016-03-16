@@ -73,7 +73,6 @@ for (i in 1:length(ntrees)) {
   ntrees.accuracies[i,'ntrees'] <- ntree
   ntrees.accuracies[i,'acc'] <- acc
 }
-
 write.csv(ntrees.accuracies, 'datadir/ntreesaccuracies.csv', row.names = FALSE)
 
 

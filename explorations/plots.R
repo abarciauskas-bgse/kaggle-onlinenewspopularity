@@ -52,6 +52,7 @@ for (i in 1:ntests) {
 
 write.csv(ensemble.results, 'ensemble-results.csv', row.names = FALSE)
 
+
 add.alpha <- function(col, alpha=1){
   if(missing(col))
     stop("Please provide a vector of colours.")
@@ -66,10 +67,61 @@ plot(ensemble.results[,'accuracy'],
   col = add.alpha('blue', 0.2), pch = 19,
   ylim = c(0.3,0.6),
   ylab = 'accuracy',
-  main = '1000 random ensembles')
+  main = 'Accuracy from 1000 Random Ensembles')
 points(rf.success.rate, col = 'red', pch = 19)
+legend(
+  'topright', # places a legend at the appropriate place
+  'single random forest', # puts text in the legend
+  pch = 19,
+  col = 'red') # gives the legend lines the correct color and width
 dev.off()
 
-ensemble.results[which.max(ensemble.results[,'accuracy']),]
+png('accuracybysamplesize.png')
+boxplot(
+  ensemble.results[,'accuracy']~ensemble.results[,'ensemble.size'],
+  ylim = c(0.4,0.6),
+  xlab = 'Ensemble Size',
+  ylab = 'Accuracy',
+  main = 'Accuracy by Sample Size from 1000 Random Ensembles')
+dev.off()
 
+ntrees.accuracies <- read.csv('ntreesaccuracies.csv')
+png('ntreesaccuracies.png')
+plot(ntrees.accuracies, type = 'l',
+  ylim = c(0.61,0.62),
+  xlab = 'Number of trees',
+  ylab = 'Accuracy',
+  main = 'Accuracy by Tree Size')
+dev.off()
 
+mtries.accuracies <- read.csv('mtryaccuracies.csv')
+png('mtryaccuracies.png')
+plot(mtries.accuracies, type = 'l',
+  ylim = c(0.61,0.62),
+  xlab = 'Variables sampled per split',
+  ylab = 'Accuracy',
+  main = 'Accuracy by Variables Samples per Split')
+dev.off()
+
+# plots for class wt options
+equal <- read.csv('classwts-equal.ensembles.csv')
+prior <- read.csv('classwts-prior.ensembles.csv')
+random <- read.csv('classwts-random.ensembles.csv')
+
+png('classwtsaccuracies.png')
+plot(equal$sub.forest.sizes, equal$sub.forest.accuracies,
+  type = 'l',
+  lwd = 2,
+  ylim = c(0.55,0.60),
+  col = 'green',
+  ylab = 'Accuracy',
+  xlab = 'Size of Forest Ensemble',
+  main = 'Accuracy by Size and Class Weights')
+lines(prior$sub.forest.sizes, prior$sub.forest.accuracies, col = 'blue', lwd = 2)
+lines(random$sub.forest.sizes, random$sub.forest.accuracies, col = 'orange', lwd = 2)
+legend('topright', # places a legend at the appropriate place
+  c('equal weights', 'prior weigths', 'random weights'), # puts text in the legend
+  lty=c(1,1), # gives the legend appropriate symbols (lines)
+  lwd=c(2,2),
+  col=c('green','blue','orange')) # gives the legend lines the correct color and width
+dev.off()

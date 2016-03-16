@@ -18,6 +18,16 @@ Ensembling predictions from the least correlated models resulted in lower predic
 
 ![1000 simulations](datadir/randomensemblesims.png)
 
-[ADD ME: predictive power by ensemble size]
+![Accuracy by size](datadir/accuracybysamplesize.png)
 
-[ADD ME: ensembling RF's tests]
+## Ensembling Random Forests
+
+Since ensembling different models was unsuccessful, we doubled down on random forest. Most parameters were tested for optimal tuning and it was found the default tuning (e.g. nodesize, mtry, ntrees) were hard to improve upon.
+
+![Accuracy by Tree Size](datadir/ntreesaccuracies.png)
+
+![Accuracy by M-try](datadir/mtryaccuracies.png)
+
+I was particularly interested in the effect of tuning classwt parameter: Could it be ensembled randomly to produce greater predictive power?
+
+![Class Weighting Accuracy](datadir/classwtsaccuracies.png)

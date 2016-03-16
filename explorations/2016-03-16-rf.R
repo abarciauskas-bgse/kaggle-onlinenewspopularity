@@ -14,29 +14,54 @@ source('setup.R')
 # a function which creates an ensemble random forests using a list of parameters
 #
 #
-ensemble.forest <- function(nforests = 10, params = list(), seed = 1402, train.data, test.data) {
-  set.seed(seed)
+ensemble.forest <- function(
+  nforests = 10,
+  params = list(),
+  seed = 1402,
+  train.data,
+  test.data,
+  random.classwts = FALSE) {
 
-  train.data.x <- train.data[,setdiff(colnames(train.data), 'popularity')]
-  train.data.y <- train.data[,'popularity']
+
+  set.seed(seed)
+  # FIXME: should be argument
+  train.portion <- 0.5
   test.data.x <- test.data[,setdiff(colnames(test.data), 'popularity')]
   test.data.y <- test.data[,'popularity']
 
   # init matrix to store predictions
   all.preds <- matrix(NA, nrow = length(test.data.y), ncol = nforests)
+  all.weights <- matrix(NA, nrow = 5, ncol = nforests)
   for (test.idx in 1:nforests) {
+    train.idcs <- sample(1:nrow(train.data), round(nrow(train.data)*train.portion))
+    train.data.x <- train.data[train.idcs,setdiff(colnames(train.data), 'popularity')]
+    train.data.y <- train.data[train.idcs,'popularity']
+    print(paste('training data:', head(train.idcs)))
     print(paste0('starting test: ', test.idx))
     # create a forest
+    classwts <- params$classwt
+    if (random.classwts == TRUE) {
+      # although fyi this need not sum up to 1
+      rand.wts <- runif(5)
+      classwts <- rand.wts/sum(rand.wts)
+    }
+    print(paste0('classwts:', classwts))
+
     forest <- NA
     if (length(params) > 0) {
-      # FIXME
-      forest <- randomForest(train.data.x, train.data.y, classwt = params[[1]])
+      # FIXME: params is not really an option here
+      forest <- randomForest(train.data.x, train.data.y, classwt = classwts)
     } else {
       forest <- randomForest(train.data.x, train.data.y)
     }
     # make and store predictions
     preds <- predict(forest, test.data.x)
+    ts <- as.numeric(Sys.time())
+    filename <- paste0('preds',ts,'.csv')
+    print(paste('writing file:', filename))
+    write.csv(preds, filename, row.names = FALSE)
     all.preds[,test.idx] <- preds
+    if (!is.null(classwts)) all.weights[,test.idx] <- classwts
   }
 
   # return accuracy for each odd number of forest sizes
@@ -57,6 +82,7 @@ ensemble.forest <- function(nforests = 10, params = list(), seed = 1402, train.d
   accuracy <- success.rate(ensemble.preds, test.data.y)
   return(list(
     all.preds = all.preds,
+    all.weights = all.weights,
     ensemble.preds = ensemble.preds,
     sub.ensemble.results = sub.ensembles.mat,
     accuracy = accuracy,
