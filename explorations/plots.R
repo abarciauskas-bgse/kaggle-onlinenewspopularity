@@ -3,7 +3,7 @@ setwd('~/Projects/kaggle-onlinenewspopularity/explorations/datadir/')
 source('../setup.R')
 
 # test data
-train.test.idcs <- read.csv('datadir/dataidcs.csv')
+train.test.idcs <- read.csv('dataidcs.csv')
 train.idcs <- train.test.idcs[,'Resample1']
 test.idcs <- train.test.idcs[,'Resample2']
 models <- c('adabag','gbm','glmnet','multinom','rfferns','rfrules','rf','knn','pda')
@@ -17,9 +17,9 @@ for (m.idx in 1:length(models)) {
   all.models.preds[,model.name] <- as.numeric(preds)
 }
 
-head(all.models.preds)
+png('ensemblecorr.png')
 corrplot(cor(all.models.preds))
-
+dev.off()
 # only rf predictions
 rf.success.rate <- success.rate(all.models.preds[,'rf'], data[test.idcs,'popularity'])
 
@@ -50,10 +50,26 @@ for (i in 1:ntests) {
   ensemble.results[i,'accuracy'] <- accuracy
 }
 
-write.csv(ensemble.results, 'datadir/ensemble-results.csv', row.names = FALSE)
+write.csv(ensemble.results, 'ensemble-results.csv', row.names = FALSE)
 
-plot(ensemble.results[,'accuracy'], col = 'blue', pch = 19, ylim = c(0.3,0.6))
+add.alpha <- function(col, alpha=1){
+  if(missing(col))
+    stop("Please provide a vector of colours.")
+  apply(sapply(col, col2rgb)/255, 2, 
+                     function(x) 
+                       rgb(x[1], x[2], x[3], alpha=alpha))  
+}
+
+ensemble.results <- read.csv('ensemble-results.csv')
+png('randomensemblesims.png')
+plot(ensemble.results[,'accuracy'],
+  col = add.alpha('blue', 0.2), pch = 19,
+  ylim = c(0.3,0.6),
+  ylab = 'accuracy',
+  main = '1000 random ensembles')
 points(rf.success.rate, col = 'red', pch = 19)
+dev.off()
+
 ensemble.results[which.max(ensemble.results[,'accuracy']),]
 
 
