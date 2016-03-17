@@ -3,6 +3,7 @@ title: "Final Report"
 author: "Aimee Barciauskas, Sarah Inman, Zsuzsa Holler"
 date: "January 30, 2016"
 output: pdf_document
+header-includes: \usepackage{graphicx}
 ---
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -70,7 +71,7 @@ ggplot(corr, aes(Var2, Var1))+
 
 ```
 
- \centerline{ \includegraphics[height=3in]{Rplot_keywords.jpeg} }
+ \centerline{ \includegraphics[height=4in]{Rplot_keywords.jpeg} }
  
 ###K-means
 
@@ -78,9 +79,7 @@ Logically, articles are written with a particular target market in mind. Differe
 
 The graph below shows some of the relationships between variables and clusters.
 
-\centerline{ 
-\includegraphics[height=3in]{Rplot1.jpeg}
-}
+\centerline{ \includegraphics[height=4in]{Rplot1.jpeg}}
 
 These graphs illustrate a number of things: firstly, cluster is not merely a proxy for weekday (the same result holds for the other categorical variables); secondly, that the clustering shows a clear relationship with some of the variables, and a less clear relationship with other variables.
 
@@ -98,9 +97,7 @@ Indeed, basic random forest specifications turned out to have around 51.5% test 
 
 Boosted classifications models provided similar test accuracy results as random tree models, around 51.4%. See below the test and training accuracy of a multinomial specifications as the function of iterations. 
 
-\centerline{
-\includegraphics[height=3in]{boost.pdf}
-}
+\centerline{\includegraphics[height=3in]{boost.jpeg}}
 
 ##Ensemble Testing
 
@@ -116,41 +113,26 @@ The results of this experiment on the Mashable data set are that while it improv
 
 Below is a plot of the correlations:
 
-\centerline{
-\includegraphics[height=3in]{ensemblecorr.png}
-}
+\centerline{\includegraphics[height=4in]{ensemblecorr.png}}
 
 Ensembling predictions from the least correlated models resulted in lower predictive power. In order to affirm this result, we ran 1000 simulations with different random sizes and selections of the model predictions available.
 
-[1000 simulations]
-\centerline{
-\includegraphics[height=3in]{randomensemblesims.png}
-}
 
-[Accuracy by size]
-\centerline{
-\includegraphics[height=3in]{accuracybysamplesize.png}
-}
+\centerline{\includegraphics[height=4in]{randomensemblesims.png}}
+
+
+\centerline{\includegraphics[height=4in]{accuracybysamplesize.png}}
 
 ## Ensembling Random Forests
 
 Since ensembling different models was unsuccessful, we doubled down on random forest. Most parameters were tested for optimal tuning and it was found the default tuning (e.g. nodesize, mtry, ntrees) were hard to improve upon.
 
-[Accuracy by Tree Size]
-\centerline{
-\includegraphics[height=3in]{ntreesaccuracies.png}
-}
 
-[Accuracy by M-try]
-\centerline{
-\includegraphics[height=3in]{mtryaccuracies.png}
-}
+\centerline{\includegraphics[height=4in]{ntreesaccuracies.png}}
+
+
+\centerline{\includegraphics[height=4in]{mtryaccuracies.png}}
 
 I was particularly interested in the effect of tuning classwt parameter: Could it be ensembled randomly to produce greater predictive power?
 
-[Class Weighting Accuracy]
-\centerline{
-\includegraphics[height=3in]{classwtsaccuracies.png}
-}
-
-
+\centerline{\includegraphics[height=4in]{classwtsaccuracies.png}}
