@@ -10,11 +10,7 @@ classwts <- sapply(1:5, function(cl) {
 })
 mtry = 2
 
-# train the forest
-# set.seed(841) # 03152016-2
-# set.seed(20160315) # 03152016-3
-# set.seed(4569121) # 03152016-4
-set.seed(45121) # 03152016-5
+seeds <- c(187, 841, 20160315, 4569121, 45121)
 rf.model <- randomForest(popularity ~ ., data = data, classwt = classwts, mtry = mtry)
 
 
