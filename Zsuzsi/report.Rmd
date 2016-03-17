@@ -1,0 +1,49 @@
+---
+title: "kaggle_datadiscovery"
+author: "Holler Zsuzsa"
+date: "January 30, 2016"
+output: pdf_document
+---
+
+Content summarized in 59 features of all articles published from January 7 2013 to January 7 2015 on Mashable. 39,000 articles in total.
+
+```{r, echo=FALSE, warning=FALSE}
+source("/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/Zsuzsi/data_read.R")
+library("ggplot2")
+```
+
+##Data discovery
+###Explore relationship between numeric data
+Simple correlations for non-categorical variables visualised. Stronger correlations between variables of the same category. It might go the the PCA section?
+
+```{r, echo=FALSE}
+#Correlations for numeric data
+library(reshape2)
+
+corr <-round(cor( data[,sort(c(x.numeric,x.rate))], method="pearson", use="pairwise.complete.obs"),2)
+corr[lower.tri(corr)] <- NA
+corr <- melt(corr)
+corr$Var1<-as.character(corr$Var1)
+corr$Var2<-as.character(corr$Var2)
+corr <- na.omit(corr)
+
+ggplot(corr, aes(Var2, Var1))+
+  geom_tile(data=corr, aes(fill=value), color="white")+
+  scale_fill_gradient2(low="blue", high="red", mid="white", 
+                       midpoint=0, limit=c(-1,1),name="Correlation\n(Pearson)")+
+  theme(axis.text.x = element_text(angle=45, vjust=1, size=11, hjust=1))+
+  coord_equal()
+
+```
+
+###Explore relationships between categorical variables (including our y variable.)
+Mosaic plot: Shows empirical conditional probabilities of row variable given column variable. Colored by Pearson residuals which shows the departure of each cell from independence. It seems that days are correraletd with the popularity especially significant difference between weekday and weekends. Also, chanel seems to be strongly related to the popularity of articles. 
+
+```{r, echo=FALSE, warning=FALSE}
+mosaicplot(t(tbl.channel), shade=T, main="Relationship of popularity and chanel", off = 25 )
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+mosaicplot(t(tbl.weekday), shade=T, main="Relationship of popularity and day of week")
+```
