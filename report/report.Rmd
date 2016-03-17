@@ -86,8 +86,17 @@ We tried removing outliers to improve our model. We noticed that roughly 95% of 
 
 ##Tree methods
 
+Since in the simple regression models with many possible explanatory variables it is difficult to determine the best set of predictors and the proper model form (e.g.: interactions and functional form) in a systematic manner we expected the tree methods combined with ensemble methods to yield relatively better prediction accuracy.
 
-#Ensemble Testing
+Indeed, basic random forest specifications turned out to have around 51.5% test accuracy which is somewhat than the best regression models. 
+
+###Boosting
+
+Boosted classifications models provided similar test accuracy results as random tree models, around 51.4%. See below the test and training accuracy of a multinomial specifications as the function of iterations. 
+
+\centerline{\includegraphics[height=3in]{boost.png}}
+
+##Ensemble Testing
 
 The concept of ensembling has become popular from the intuitive idea that more heads are better than one. It has been shown that making predicions from a collection of models can have greater predictive power than one very good model.
 
