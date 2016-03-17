@@ -16,7 +16,6 @@ set.seed(0214)
 final.forest <- randomForest(data.x, data.y, classwt = classwts)
 
 final.preds <- predict(final.forest, x.test)
-final.predictions <- cbind(id=data.test[,'id'], popularity=final.preds)
 
 # compare with ->
-res <- read.csv('16032016-2-final-predictions.csv')
+submission <- read.csv('16032016-2-final-predictions.csv')
