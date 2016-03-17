@@ -121,6 +121,7 @@ data.validation$correct = ifelse(prediction.fisher == data.validation[,y],1,0)
 success.rate(prediction.fisher, data.validation[,y] )
 
 #Trying ordered logit to take into account that popularity is an ordered variable 
+library(MASS)
 data.train[,y] = factor(data.train[,y])
 data.validation[,y] = factor(data.validation[,y])
 
