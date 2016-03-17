@@ -16,7 +16,7 @@ Over the course of this project we tried out a number of different machine learn
 ##K-NN
 To have a reference point in terms of prediction accuracy we run an optimized k-nn specification on the standardised variables. We optimized the k-value based on accuracy on a test set. The best specification had approximately 49% accuracy which is approxiemately 3% higher than if we had predicted every article having popularity 2, the most frequent outcome value in the sample. We also tried to run k-nn separately for different channels and separately for articles published on weekends and weekdays since the treatment of categorical variables is problematic in k-nn. The overall accuracy of these k-nn was very similar to the simple k-nn approach run on standardised data. 
 
-\centerline{\includegraphics[height=3in]{k_nn.png}}
+ \centerline{\includegraphics[height=3in]{k_nn.png}}
 
 ##Logistic regression
 
@@ -70,13 +70,17 @@ ggplot(corr, aes(Var2, Var1))+
 
 ```
 
+ \centerline{ \includegraphics[height=3in]{Rplot_keywords.jpeg} }
+ 
 ###K-means
 
 Logically, articles are written with a particular target market in mind. Different target markets will react differently to the various features captured in the dataset, and the writer will change aspects of their writing in order to reflect this. This is the logic behind seeking clusters in the data: authors who are targeting readers who are looking for in-depth articles with many long words will use more complex sentence structures than those who are targeting readers who want a short humour article. For this reason, it makes sense to split the data into clusters and then measure the differential impact of the different features dependent on the cluster. This approach using three clusters yielded around the 50% mark during cross-validation, though dropping again to about 48% on our actual submission.
 
 The graph below shows some of the relationships between variables and clusters.
 
-GRAPH TO BE ADDED
+\centerline{ 
+\includegraphics[height=3in]{Rplot1.jpeg}
+}
 
 These graphs illustrate a number of things: firstly, cluster is not merely a proxy for weekday (the same result holds for the other categorical variables); secondly, that the clustering shows a clear relationship with some of the variables, and a less clear relationship with other variables.
 
@@ -94,7 +98,9 @@ Indeed, basic random forest specifications turned out to have around 51.5% test 
 
 Boosted classifications models provided similar test accuracy results as random tree models, around 51.4%. See below the test and training accuracy of a multinomial specifications as the function of iterations. 
 
-\centerline{\includegraphics[height=3in]{boost.png}}
+\centerline{
+\includegraphics[height=3in]{boost.pdf}
+}
 
 ##Ensemble Testing
 
@@ -110,24 +116,41 @@ The results of this experiment on the Mashable data set are that while it improv
 
 Below is a plot of the correlations:
 
-![Ensembles Correlation](../explorations/datadir/ensemblecorr.png)
+\centerline{
+\includegraphics[height=3in]{ensemblecorr.png}
+}
 
 Ensembling predictions from the least correlated models resulted in lower predictive power. In order to affirm this result, we ran 1000 simulations with different random sizes and selections of the model predictions available.
 
-![1000 simulations](../explorations/datadir/randomensemblesims.png)
+[1000 simulations]
+\centerline{
+\includegraphics[height=3in]{randomensemblesims.png}
+}
 
-![Accuracy by size](../explorations/datadir/accuracybysamplesize.png)
+[Accuracy by size]
+\centerline{
+\includegraphics[height=3in]{accuracybysamplesize.png}
+}
 
 ## Ensembling Random Forests
 
 Since ensembling different models was unsuccessful, we doubled down on random forest. Most parameters were tested for optimal tuning and it was found the default tuning (e.g. nodesize, mtry, ntrees) were hard to improve upon.
 
-![Accuracy by Tree Size](../explorations/datadir/ntreesaccuracies.png)
+[Accuracy by Tree Size]
+\centerline{
+\includegraphics[height=3in]{ntreesaccuracies.png}
+}
 
-![Accuracy by M-try](../explorations/datadir/mtryaccuracies.png)
+[Accuracy by M-try]
+\centerline{
+\includegraphics[height=3in]{mtryaccuracies.png}
+}
 
 I was particularly interested in the effect of tuning classwt parameter: Could it be ensembled randomly to produce greater predictive power?
 
-![Class Weighting Accuracy](../explorations/datadir/classwtsaccuracies.png)
+[Class Weighting Accuracy]
+\centerline{
+\includegraphics[height=3in]{classwtsaccuracies.png}
+}
 
 
