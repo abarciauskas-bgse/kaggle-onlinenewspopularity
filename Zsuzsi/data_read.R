@@ -1,8 +1,8 @@
-setwd("/home/zsuzsa/Documents/kaggle")
+setwd("~/Projects/")
 source("kaggle-onlinenewspopularity/functions.R")
 
 #Read in data
-data <- read.csv('data/news_popularity_training.csv')
+data <- read.csv('kaggle-onlinenewspopularity/data/news_popularity_training.csv')
 data <- data[data$n_unique_tokens != 701,]
 N <- nrow(data)
 

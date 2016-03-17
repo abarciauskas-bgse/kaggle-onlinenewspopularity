@@ -101,7 +101,7 @@ Boosted classifications models provided similar test accuracy results as random 
 
 ##Ensemble Testing
 
-The concept of ensembling has become popular from the intuitive idea that more heads are better than one. It has been shown that making predicions from a collection of models can have greater predictive power than one very good model.
+The concept of ensembling has become popular from the intuitive idea that more heads are better than one. *Are more models better than one?* It has been shown that making predicions from a collection of models can have greater predictive power than one very good model.
 
 The process to create an ensemble was as follows:
 
@@ -136,3 +136,13 @@ Since ensembling different models was unsuccessful, we doubled down on random fo
 I was particularly interested in the effect of tuning classwt parameter: Could it be ensembled randomly to produce greater predictive power?
 
 \centerline{\includegraphics[height=4in]{classwtsaccuracies.png}}
+
+As can be seen in the plots above, ultimately the highest predictive power came from an ensemble of forests using class priors. By passing to the `randomForest` algorithm the `classwt = classwts` parameter, we arrived at our highest prediction.
+
+```{r}
+no.classes <- length(unique(data.train[,label]))
+classwts <- sapply(1:no.classes, function(cl) {
+  sum(data.train[,label] == cl)/nrow(data.train)
+})
+```
+
