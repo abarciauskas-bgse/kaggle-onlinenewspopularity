@@ -105,6 +105,11 @@ for (i in 1:length(k.values)) {
 #best k-value: 101
 k.values[which.max(accuracy)]
 
+png(filename = "/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/report/k_nn.png",
+    width = 480, height = 300)
+plot(k.values,accuracy, type="l", main="Prediction accuracy of k-nn specifications", xlab="k", ylab="Test accuracy")
+dev.off()
+
 prediction.test =  knn(data.train[,x.knn],
                                       data.test[,x.knn],
                                       data.train[,y],k=k.values[which.max(accuracy)])

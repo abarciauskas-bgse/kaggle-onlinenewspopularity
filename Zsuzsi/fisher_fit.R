@@ -121,6 +121,7 @@ data.validation$correct = ifelse(prediction.fisher == data.validation[,y],1,0)
 success.rate(prediction.fisher, data.validation[,y] )
 
 #Trying ordered logit to take into account that popularity is an ordered variable 
+library(MASS)
 data.train[,y] = factor(data.train[,y])
 data.validation[,y] = factor(data.validation[,y])
 
@@ -160,3 +161,8 @@ for (i in 1:length(models)) {
 }
 #Prediction is only running up to 18 vars but it can already be seen 
 #that the accuracy is pretty low (~48,9%) 
+
+bic.all = as.data.frame(bic)
+bic.all$novars = 1:nrow(bic.all)-1
+bic.all = melt(bic.all, id=c("novars") )
+write.table(bic.all, file="/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/report/bic.csv")
