@@ -96,3 +96,7 @@ loglik <- function(model) {
   -model$deviance/2
 }
 
+my.mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}

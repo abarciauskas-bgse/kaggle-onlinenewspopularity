@@ -15,6 +15,35 @@ library("ggplot2")
 ##Data discovery
 
 ```{r, echo=FALSE}
+for (var in c(x.numeric,x.rate)) {
+  print(boxplot(data[,var],main=var))
+} 
+
+#articles without words
+dim(data[data$average_token_length==0,])
+
+#Outlier removed
+boxplot(data$n_unique_tokens[data$n_unique_tokens != 701])
+boxplot(data$n_non_stop_unique_tokens[data$n_unique_tokens != 701])
+boxplot(data$n_non_stop_words[data$n_unique_tokens != 701])
+
+table = table(data.knn[,y],data.knn[,"data_chanel"])
+table = round((table * 
+                 matrix(1/colSums(table),ncol = ncol(table), nrow=nrow(table) ,byrow=T))
+              *100,0)
+
+most.frequent = matrix(NA, 2,7)
+frequency = matrix(NA, 2,7)
+for (i in 1:2) {
+  for (j in 1:7) {
+    most.frequent[i,j] = 
+      which.max(table(data[,y],data[,"data_chanel"],data[,"is_weekend"])[,j,i])
+    frequency[i,j] = 
+      max(table(data[,y],data[,"data_chanel"],data[,"is_weekend"])[,j,i])
+  }
+}
+
+
 qplot( factor(popularity), data=data, geom = "bar",
        fill=factor(weekday)
        #position = "fill" #different display
