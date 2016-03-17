@@ -93,7 +93,7 @@ predict.boost.mult = apply(predict.boost.mult,1,function(x) colnames(predict.boo
 errors <- data.frame(Iterations = iter.vec,Train = trainError, Test = testError) %>%
   melt(id.vars = "Iterations")
 
-png(file="/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/report/boost.png", height = 300, width = 460)
+jpeg(file="/home/zsuzsa/Documents/kaggle/kaggle-onlinenewspopularity/report/boost.jpeg", height = 300, width = 460)
 ggplot(data = errors, aes(x = Iterations, y = value, color = variable)) +
   geom_line()
 dev.off()
